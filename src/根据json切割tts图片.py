@@ -38,7 +38,7 @@ directory = os.path.dirname(file_path)
 # Use os.path.join to safely build the path for the 'Images' directory
 img_dir = os.path.abspath(os.path.join(directory, "..", "Images"))
 
-unique_nodes = get_unique_nodes(file_path)
+unique_nodes = get_unique_nodes(file_path)['CustomDeck']
 
 # 遍历并打印结果
 if unique_nodes:

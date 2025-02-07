@@ -18,7 +18,7 @@ def get_unique_nodes(file_path):
         return []
 
     # 用于存储唯一节点的集合
-    nodes_set = set()
+    custom_deck_set = set()
 
     # 递归查找 CustomDeck 字段
     def find_custom_deck(data):
@@ -39,7 +39,7 @@ def get_unique_nodes(file_path):
                         deck.get("UniqueBack", False),
                         deck.get("Type", 0)
                     )
-                    nodes_set.add(node)  # 存入 set 自动去重
+                    custom_deck_set.add(node)  # 存入 set 自动去重
 
             # 递归处理子节点
             for value in data.values():
@@ -53,15 +53,16 @@ def get_unique_nodes(file_path):
     find_custom_deck(data)
 
     # 转换成结构化列表
-    return [
-        {
-            "FaceName": node[0],
-            "BackName": node[1],
-            "NumWidth": node[2],
-            "NumHeight": node[3],
-            "BackIsHidden": node[4],
-            "UniqueBack": node[5],
-            "Type": node[6],
-        }
-        for node in nodes_set
-    ]
+    return { "CustomDeck":[
+             {
+                 "FaceName": node[0],
+                 "BackName": node[1],
+                 "NumWidth": node[2],
+                 "NumHeight": node[3],
+                 "BackIsHidden": node[4],
+                 "UniqueBack": node[5],
+                 "Type": node[6],
+             }
+             for node in custom_deck_set
+        ]
+    }
