@@ -1,0 +1,3 @@
+[submodule "src/file_collector_with_ignore"]
+	path = src/file_collector_with_ignore
+	url = https://github.com/0bao/file_collector_with_ignore.git
