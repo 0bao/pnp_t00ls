@@ -30,7 +30,7 @@ def find_image_with_extension(base_path):
 
 
 # 让用户输入 JSON 文件路径并调用方法
-file_path = input("请输入 JSON 文件路径: ").replace('"', '')
+file_path = input("请输入 JSON 文件路径（放在 Workshop 目录下）: ").replace('"', '')
 
 # Get the directory of the file
 directory = os.path.dirname(file_path)
@@ -40,12 +40,6 @@ img_dir = os.path.abspath(os.path.join(directory, "..", "Images"))
 
 unique_nodes = get_unique_nodes(file_path)
 
-
-def clean_string(input_str):
-    # Remove ':', '/', and '-'
-    cleaned_str = input_str.replace(":", "").replace("/", "").replace("-", "").replace(".", "")
-    return cleaned_str
-
 # 遍历并打印结果
 if unique_nodes:
     print("\n解析出的唯一节点信息：")
@@ -53,8 +47,7 @@ if unique_nodes:
     for i, node in enumerate(unique_nodes, start=1):
         print(f"\n节点 {i}:")
         print(node)
-        img_name = clean_string(node['FaceName'])
-        img_path = os.path.abspath(os.path.join(img_dir, img_name))
+        img_path = os.path.abspath(os.path.join(img_dir, node['FaceName']))
         print(img_path)
         img_path = find_image_with_extension(img_path)
         if img_path != "":
@@ -69,8 +62,7 @@ if unique_nodes:
             back_dir = os.path.join(dir_name, "back")
             # 创建目录（如果不存在）
             os.makedirs(back_dir, exist_ok=True)
-            back_img_name = clean_string(node['BackName'])
-            back_img_path = find_image_with_extension(os.path.abspath(os.path.join(img_dir, back_img_name)))
+            back_img_path = find_image_with_extension(os.path.abspath(os.path.join(img_dir, node['BackName'])))
             if not node['UniqueBack']:
                 shutil.copy(back_img_path, back_dir)
             else:
