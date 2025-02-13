@@ -18,7 +18,7 @@ def pdf_image(pdfPath, imgPath, zoom_x, zoom_y, rotation_angle):
     # 打开PDF文件
     pdf = fitz.open(pdfPath)
 
-    mark = Image.open("../res/mark-line.png")
+    mark = Image.open("../../res/mark-line.png")
 
     mark = mark.resize(a4_target_size, Image.LANCZOS)
 

@@ -1,7 +1,6 @@
 import os
 from PIL import Image, ImageDraw
 
-
 def apply_round_corners(image, radius):
     """对图片进行圆角处理，圆角区域为白色"""
     # 创建相同大小的圆角遮罩
