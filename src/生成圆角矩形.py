@@ -44,12 +44,21 @@ def create_centered_rounded_rectangle_image(bg_width_mm, bg_height_mm, rect_widt
     image.save(output_path, dpi=(dpi, dpi))
     print(f"图片已保存至 {output_path}")
 
+
+MAX_CARD_WIDTH_MM = 54
+MAX_CARD_HEIGHT_MM = 122
+
+# -1 for auto
+CARD_WIDTH_MM = 52 - 0.5
+CARD_HEIGHT_MM = 119 - 0.5
+
 # 调用函数，示例：在 80mm * 150mm 的白色背景上，放置 52mm * 120mm 的圆角矩形
 create_centered_rounded_rectangle_image(
-    bg_width_mm=122,
-    bg_height_mm=122,
-    rect_width_mm=120,
-    rect_height_mm=120,
-    radius_mm=10,
+    bg_width_mm=MAX_CARD_WIDTH_MM,
+    bg_height_mm=MAX_CARD_HEIGHT_MM,
+    rect_width_mm=CARD_WIDTH_MM,
+    rect_height_mm=CARD_HEIGHT_MM,
+    radius_mm=2,
     dpi=300
 )
+
