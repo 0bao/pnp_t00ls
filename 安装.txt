@@ -1,6 +1,7 @@
 pip install pymupdf
 pip install pillow
 pip install opencv-python
+pip install reportlab
 
 
 
