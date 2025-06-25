@@ -3,7 +3,7 @@ pip install pillow
 pip install opencv-python
 pip install reportlab
 
-
+#python 3.12
 
 
 Package  Version

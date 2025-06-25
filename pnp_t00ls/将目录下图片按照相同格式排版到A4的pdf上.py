@@ -7,7 +7,7 @@ import fitz
 from PIL import Image
 from reportlab.pdfgen import canvas
 
-from file_collector_with_ignore.file_collector_with_ignore import collect_files
+from libs.file_collector_with_ignore.file_collector_with_ignore import collect_files
 
 # 输入字符串
 param_str = ""
