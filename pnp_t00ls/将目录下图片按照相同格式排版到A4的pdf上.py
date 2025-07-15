@@ -76,10 +76,10 @@ def print_update(var_name, default_value):
         print(f"未找到 {var_name}，保持默认值 {default_value}")
         return default_value
 
-MAX_CARD_WIDTH_MM = print_update("MAX_CARD_WIDTH_MM", MAX_CARD_WIDTH_MM)
-MAX_CARD_HEIGHT_MM = print_update("MAX_CARD_HEIGHT_MM", MAX_CARD_HEIGHT_MM)
-CARD_WIDTH_MM = print_update("CARD_WIDTH_MM", CARD_WIDTH_MM)
-CARD_HEIGHT_MM = print_update("CARD_HEIGHT_MM", CARD_HEIGHT_MM)
+MAX_CARD_WIDTH_MM = float(print_update("MAX_CARD_WIDTH_MM", MAX_CARD_WIDTH_MM))
+MAX_CARD_HEIGHT_MM = float(print_update("MAX_CARD_HEIGHT_MM", MAX_CARD_HEIGHT_MM))
+CARD_WIDTH_MM = float(print_update("CARD_WIDTH_MM", CARD_WIDTH_MM))
+CARD_HEIGHT_MM = float(print_update("CARD_HEIGHT_MM", CARD_HEIGHT_MM))
 REPEAT = print_update("REPEAT", REPEAT)
 REPEAT_COUNT = print_update("REPEAT_COUNT", REPEAT_COUNT)
 WRITE_TEXT = print_update("WRITE_TEXT", WRITE_TEXT)
