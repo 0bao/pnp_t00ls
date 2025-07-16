@@ -8,123 +8,64 @@ from PIL import Image
 from reportlab.pdfgen import canvas
 
 from libs.file_collector_with_ignore.file_collector_with_ignore import collect_files
-
-# 输入字符串
-param_str = ""
-
-imgs_path = ""
+from pnpconfig_parser import PnpConfigParser
 
 
-REPEAT = False
-REPEAT_COUNT = 0
-WRITE_TEXT = True
+
+
+# 🧩 默认配置
+defaults = {
+    "MAX_CARD_WIDTH_MM": 44,
+    "MAX_CARD_HEIGHT_MM": 66,
+    "CARD_WIDTH_MM": 42.5,
+    "CARD_HEIGHT_MM": 64.5,
+    "REPEAT": False,
+    "REPEAT_COUNT": 0,
+    "WRITE_TEXT": "",
+    "ROWS": -1,
+    "COLS": -1,
+    "RIGHT_TO_LEFT": False,
+}
 
 # Constants for sizing in mm, converted to pixels (A4 at 300ppi)
 A4_WIDTH, A4_HEIGHT = (2480, 3508)  # A4 size at 300ppi
 
-MAX_CARD_WIDTH_MM = 43
-MAX_CARD_HEIGHT_MM = 65
-
-# -1 for auto
-CARD_WIDTH_MM = 38
-CARD_HEIGHT_MM = 60
-
-# -1 for auto
-ROWS = -1
-COLS = 1
-
-RIGHT_TO_LEFT = False
+imgs_path = ""
 
 if imgs_path == "":
     imgs_path = input("Enter the path to the images folder: ").strip().strip('"')
 
-config_dir = imgs_path
+# 📂 获取配置路径
+config = PnpConfigParser(imgs_path)
+config.parse()
 
-# 需要解析的变量列表，包含新增参数
-pattern = re.compile(r'^\s*(MAX_CARD_WIDTH_MM|MAX_CARD_HEIGHT_MM|CARD_WIDTH_MM|CARD_HEIGHT_MM|REPEAT|REPEAT_COUNT|WRITE_TEXT|ROWS|COLS|RIGHT_TO_LEFT)\s*=\s*(.+)$')
+# 🎯 解析最终配置
+MAX_CARD_WIDTH_MM = float(config.get("MAX_CARD_WIDTH_MM", defaults["MAX_CARD_WIDTH_MM"]))
+MAX_CARD_HEIGHT_MM = float(config.get("MAX_CARD_HEIGHT_MM", defaults["MAX_CARD_HEIGHT_MM"]))
+CARD_WIDTH_MM = float(config.get("CARD_WIDTH_MM", defaults["CARD_WIDTH_MM"]))
+CARD_HEIGHT_MM = float(config.get("CARD_HEIGHT_MM", defaults["CARD_HEIGHT_MM"]))
+REPEAT = config.get("REPEAT", defaults["REPEAT"])
+REPEAT_COUNT = config.get("REPEAT_COUNT", defaults["REPEAT_COUNT"])
+WRITE_TEXT = config.get("WRITE_TEXT", defaults["WRITE_TEXT"])
+ROWS = config.get("ROWS", defaults["ROWS"])
+COLS = config.get("COLS", defaults["COLS"])
+RIGHT_TO_LEFT = config.get("RIGHT_TO_LEFT", defaults["RIGHT_TO_LEFT"])
 
-found_values = {}
-
-def parse_value(val_str):
-    val_str = val_str.strip()
-    if val_str.lower() == "true":
-        return True
-    elif val_str.lower() == "false":
-        return False
-    try:
-        return int(val_str)
-    except:
-        return val_str
-
-# 遍历目录下所有 .pnpcfg 文件并解析变量
-for fname in os.listdir(config_dir):
-    if fname.endswith(".pnpcfg"):
-        path = os.path.join(config_dir, fname)
-        with open(path, 'r', encoding='utf-8') as f:
-            for line in f:
-                m = pattern.match(line)
-                if m:
-                    var_name = m.group(1)
-                    val = parse_value(m.group(2))
-                    found_values[var_name] = val
-
-def print_update(var_name, default_value):
-    if var_name in found_values:
-        print(f"加载 {var_name} = {found_values[var_name]}")
-        return found_values[var_name]
-    else:
-        print(f"未找到 {var_name}，保持默认值 {default_value}")
-        return default_value
-
-MAX_CARD_WIDTH_MM = float(print_update("MAX_CARD_WIDTH_MM", MAX_CARD_WIDTH_MM))
-MAX_CARD_HEIGHT_MM = float(print_update("MAX_CARD_HEIGHT_MM", MAX_CARD_HEIGHT_MM))
-CARD_WIDTH_MM = float(print_update("CARD_WIDTH_MM", CARD_WIDTH_MM))
-CARD_HEIGHT_MM = float(print_update("CARD_HEIGHT_MM", CARD_HEIGHT_MM))
-REPEAT = print_update("REPEAT", REPEAT)
-REPEAT_COUNT = print_update("REPEAT_COUNT", REPEAT_COUNT)
-WRITE_TEXT = print_update("WRITE_TEXT", WRITE_TEXT)
-ROWS = print_update("ROWS", ROWS)
-COLS = print_update("COLS", COLS)
-RIGHT_TO_LEFT = print_update("RIGHT_TO_LEFT", RIGHT_TO_LEFT)
-
-print("\n最终配置:")
-print(f"MAX_CARD_WIDTH_MM = {MAX_CARD_WIDTH_MM}")
-print(f"MAX_CARD_HEIGHT_MM = {MAX_CARD_HEIGHT_MM}")
-print(f"CARD_WIDTH_MM = {CARD_WIDTH_MM}")
-print(f"CARD_HEIGHT_MM = {CARD_HEIGHT_MM}")
-print(f"REPEAT = {REPEAT}")
-print(f"REPEAT_COUNT = {REPEAT_COUNT}")
-print(f"WRITE_TEXT = {WRITE_TEXT}")
-print(f"ROWS = {ROWS}")
-print(f"COLS = {COLS}")
-print(f"RIGHT_TO_LEFT = {RIGHT_TO_LEFT}")
-
-
-if param_str != "":
-    # 正则匹配参数
-    matches = re.findall(r"-([a-zA-Z]+)([\d/]+)", param_str)
-
-    # 解析参数
-    params = {}
-    for key, value in matches:
-        if "/" in value:
-            params[key] = tuple(map(int, value.split('/')))  # 解析成分数元组
-        else:
-            params[key] = int(value)  # 解析成整数
-
-    # 变量映射
-    CARD_WIDTH_MM = params.get("iw", 0)
-    CARD_HEIGHT_MM = params.get("ih", 0)
-    MAX_CARD_WIDTH_MM = params.get("ow", 0)
-    MAX_CARD_HEIGHT_MM = params.get("oh", 0)
-    ROWS = params.get("r", 1)
-    COLUMNS = params.get("c", 1)
-    LAYOUT = params.get("l", "default")
-    PADDING = params.get("p", (0, 1))  # 默认1/1
-    REPEAT = params.get("rpt", 0) > 0
-
-
-
+# 📋 打印最终配置
+print("\n🔧 最终配置:")
+for k, v in {
+    "MAX_CARD_WIDTH_MM": MAX_CARD_WIDTH_MM,
+    "MAX_CARD_HEIGHT_MM": MAX_CARD_HEIGHT_MM,
+    "CARD_WIDTH_MM": CARD_WIDTH_MM,
+    "CARD_HEIGHT_MM": CARD_HEIGHT_MM,
+    "REPEAT": REPEAT,
+    "REPEAT_COUNT": REPEAT_COUNT,
+    "WRITE_TEXT": WRITE_TEXT,
+    "ROWS": ROWS,
+    "COLS": COLS,
+    "RIGHT_TO_LEFT": RIGHT_TO_LEFT
+}.items():
+    print(f"{k} = {v}")
 
 # ａ４纸两边的白边
 PAGE_MARGIN_WIDTH_MM = 25 / 2.0
