@@ -10,25 +10,9 @@ from reportlab.pdfgen import canvas
 from libs.file_collector_with_ignore.file_collector_with_ignore import collect_files
 from pnpconfig_parser import PnpConfigParser
 
+from config import *
 
-
-
-# 🧩 默认配置
-defaults = {
-    "MAX_CARD_WIDTH_MM": 44,
-    "MAX_CARD_HEIGHT_MM": 66,
-    "CARD_WIDTH_MM": 42.5,
-    "CARD_HEIGHT_MM": 64.5,
-    "REPEAT": False,
-    "REPEAT_COUNT": 0,
-    "WRITE_TEXT": "",
-    "ROWS": -1,
-    "COLS": -1,
-    "RIGHT_TO_LEFT": False,
-}
-
-# Constants for sizing in mm, converted to pixels (A4 at 300ppi)
-A4_WIDTH, A4_HEIGHT = (2480, 3508)  # A4 size at 300ppi
+PAGE_WIDTH, PAGE_HEIGHT = A4_WIDTH, A4_HEIGHT
 
 imgs_path = ""
 
@@ -50,22 +34,6 @@ WRITE_TEXT = config.get("WRITE_TEXT", defaults["WRITE_TEXT"])
 ROWS = config.get("ROWS", defaults["ROWS"])
 COLS = config.get("COLS", defaults["COLS"])
 RIGHT_TO_LEFT = config.get("RIGHT_TO_LEFT", defaults["RIGHT_TO_LEFT"])
-
-# 📋 打印最终配置
-print("\n🔧 最终配置:")
-for k, v in {
-    "MAX_CARD_WIDTH_MM": MAX_CARD_WIDTH_MM,
-    "MAX_CARD_HEIGHT_MM": MAX_CARD_HEIGHT_MM,
-    "CARD_WIDTH_MM": CARD_WIDTH_MM,
-    "CARD_HEIGHT_MM": CARD_HEIGHT_MM,
-    "REPEAT": REPEAT,
-    "REPEAT_COUNT": REPEAT_COUNT,
-    "WRITE_TEXT": WRITE_TEXT,
-    "ROWS": ROWS,
-    "COLS": COLS,
-    "RIGHT_TO_LEFT": RIGHT_TO_LEFT
-}.items():
-    print(f"{k} = {v}")
 
 # ａ４纸两边的白边
 PAGE_MARGIN_WIDTH_MM = 25 / 2.0
@@ -105,18 +73,18 @@ MAX_COLS = COLS
 MAX_ROWS = ROWS
 if ROWS == -1 or COLS == -1:
     # Calculate rows and columns dynamically based on A4 page size
-    MAX_COLS = (A4_WIDTH - mm_to_px(PAGE_MARGIN_WIDTH_MM * 2.0)) // CARD_WIDTH
+    MAX_COLS = (PAGE_WIDTH - mm_to_px(PAGE_MARGIN_WIDTH_MM * 2.0)) // CARD_WIDTH
     i = mm_to_px(PAGE_MARGIN_HEIGHT_MM * 2.0)
-    MAX_ROWS = (A4_HEIGHT - mm_to_px(PAGE_MARGIN_HEIGHT_MM * 2.0)) // CARD_HEIGHT
+    MAX_ROWS = (PAGE_HEIGHT - mm_to_px(PAGE_MARGIN_HEIGHT_MM * 2.0)) // CARD_HEIGHT
 
 # Calculate margin for centering
-MARGIN_X = (A4_WIDTH - MAX_COLS * CARD_WIDTH) // 2
-MARGIN_Y = (A4_HEIGHT - MAX_ROWS * CARD_HEIGHT) // 2
+MARGIN_X = (PAGE_WIDTH - MAX_COLS * CARD_WIDTH) // 2
+MARGIN_Y = (PAGE_HEIGHT - MAX_ROWS * CARD_HEIGHT) // 2
 
 # Prepare images and PDF output
 def create_pdf(input_dir, output_pdf, right_to_left=False):
-    c = canvas.Canvas(output_pdf, pagesize=(A4_WIDTH, A4_HEIGHT))
-    x, y = MARGIN_X, A4_HEIGHT - MARGIN_Y - CARD_HEIGHT  # Start at top-left within margins
+    c = canvas.Canvas(output_pdf, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
+    x, y = MARGIN_X, PAGE_HEIGHT - MARGIN_Y - CARD_HEIGHT  # Start at top-left within margins
 
     filtered_files = collect_files(input_dir)
 
@@ -140,7 +108,7 @@ def create_pdf(input_dir, output_pdf, right_to_left=False):
     row_count = 0
 
     if right_to_left:
-        x = A4_WIDTH - MARGIN_X - CARD_WIDTH  # Start at top-right within margins
+        x = PAGE_WIDTH - MARGIN_X - CARD_WIDTH  # Start at top-right within margins
 
     for image_path in image_files:
         print(f"Processing image: {image_path}")
@@ -176,14 +144,14 @@ def create_pdf(input_dir, output_pdf, right_to_left=False):
         if col_count == MAX_COLS:
             col_count = 0
             row_count += 1
-            x = A4_WIDTH - MARGIN_X - CARD_WIDTH if right_to_left else MARGIN_X
+            x = PAGE_WIDTH - MARGIN_X - CARD_WIDTH if right_to_left else MARGIN_X
             y -= CARD_HEIGHT
 
         if row_count == MAX_ROWS:
             c.showPage()
             row_count = 0
-            x = A4_WIDTH - MARGIN_X - CARD_WIDTH if right_to_left else MARGIN_X
-            y = A4_HEIGHT - MARGIN_Y - CARD_HEIGHT
+            x = PAGE_WIDTH - MARGIN_X - CARD_WIDTH if right_to_left else MARGIN_X
+            y = PAGE_HEIGHT - MARGIN_Y - CARD_HEIGHT
 
     c.save()
     print(f"PDF saved as {output_pdf}")
@@ -242,9 +210,6 @@ def pdf_image(pdfPath, zoom_x, zoom_y, rotation_angle):
 
     add_page_numbers(pdfPath[0: -4] + "-marked-line.pdf")
     print(f"Marked PDF saved as {pdfPath[0: -4]}-marked-line.pdf")
-
-
-
 
 
 
