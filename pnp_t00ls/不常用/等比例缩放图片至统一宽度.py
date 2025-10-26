@@ -30,6 +30,6 @@ if __name__ == '__main__':
         for index, name in enumerate(image_names):
             input_image = Image.open(os.path.join(imgs_path, name))
             out_img = resize_image(input_image, width)  # Resize the image to 2048 width while maintaining aspect ratio
-            output_path = os.path.join(output_dir, f'{index:03d}.png')
-            out_img.save(output_path, quality=100)
+            output_path = os.path.join(output_dir, f'{index:03d}.jpg')
+            out_img.save(output_path, quality=85)
             print(f"Processed and saved: {output_path}")

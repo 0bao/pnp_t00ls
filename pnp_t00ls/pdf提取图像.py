@@ -2,17 +2,20 @@ import fitz
 import os
 
 def convert_and_save_image(pix, output_path):
-    # 如果图像有 Alpha 通道（透明通道），先将其转换为 RGB
-    if pix.n >= 5:  # 这意味着图像可能是带 Alpha 通道的（例如 CMYK 或 RGBA）
-        # 转换为 RGB 格式
-        pix_rgb = fitz.Pixmap(fitz.csRGB, pix)
-        pix_rgb.save(output_path)
-        pix_rgb = None
-        print(f"保存图片: {output_path} (转换为 RGB 模式)")
-    else:
-        # 图像是 GRAY 或 RGB，可以直接保存
-        pix.save(output_path)
-        print(f"保存图片: {output_path} (GRAY/RGB 模式)")
+    try:
+        if pix.colorspace.name not in ['DeviceRGB', 'DeviceGray']:
+            # 转换为 RGB
+            pix_converted = fitz.Pixmap(fitz.csRGB, pix)
+            pix_converted.save(output_path)
+            pix_converted = None
+            print(f"保存图片: {output_path} (已转换颜色空间为 RGB)")
+        else:
+            # 可以直接保存
+            pix.save(output_path)
+            print(f"保存图片: {output_path} (颜色空间为 {pix.colorspace.name})")
+    except Exception as e:
+        print(f"保存图片失败: {e}")
+
 
 if __name__ == '__main__':
     # 简洁的输入提示，告知用户双引号会自动处理

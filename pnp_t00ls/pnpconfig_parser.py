@@ -78,6 +78,8 @@ class PnpConfigParser:
         if val.upper() == "DEFAULT":
             return default_value
 
+
+
         const_match = re.match(r'^CONST\((.+)\)$', val, re.IGNORECASE)
         if const_match:
             raw_val = const_match.group(1).strip()

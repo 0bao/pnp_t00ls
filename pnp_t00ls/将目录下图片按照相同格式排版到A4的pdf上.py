@@ -3,12 +3,16 @@ import os
 import re
 import uuid
 
-import fitz
-from PIL import Image
 from reportlab.pdfgen import canvas
 
 from libs.file_collector_with_ignore.file_collector_with_ignore import collect_files
 from pnpconfig_parser import PnpConfigParser
+
+
+import fitz          # PyMuPDF
+from PIL import Image
+import io
+from pathlib import Path
 
 from config import *
 
@@ -212,8 +216,47 @@ def pdf_image(pdfPath, zoom_x, zoom_y, rotation_angle):
     print(f"Marked PDF saved as {pdfPath[0: -4]}-marked-line.pdf")
 
 
+def overlay_image_on_pdf(pdf_path: str, overlay_image_path: str):
+    """
+    将 overlay_image_path 按每页大小拉伸后，铺满 pdf_path 每一页。
+    输出文件名: 原pdf名 + '-' + 图片主名 + '.pdf'
+    """
+    pdf = fitz.open(pdf_path)
+    overlay_img = Image.open(overlay_image_path).convert("RGBA")
+
+    out_imgs = []
+    for page in pdf:
+        pix = page.get_pixmap(alpha=False)               # 原始尺寸渲染
+        img_data = pix.tobytes()
+        base_img = Image.open(io.BytesIO(img_data)).convert("RGBA")
+
+        # 拉伸叠加图到与当前页一样大小
+        stretched = overlay_img.resize(base_img.size, Image.LANCZOS)
+
+        # 覆盖整页
+        base_img.paste(stretched, (0, 0), stretched)
+
+        out_imgs.append(base_img.convert("RGB"))
+
+    pdf.close()
+
+    if out_imgs:
+        stem = Path(overlay_image_path).stem
+        output_path = Path(pdf_path).with_stem(Path(pdf_path).stem + f"-{stem}")
+        out_imgs[0].save(
+            output_path,
+            save_all=True,
+            append_images=out_imgs[1:],
+            quality=100
+        )
+
+        add_page_numbers(output_path)
+        print(f"PDF 已保存：{output_path}")
+
 
 input_directory = imgs_path
 output_pdf = os.path.join(input_directory, "output.pdf")
 create_pdf(input_directory, output_pdf, RIGHT_TO_LEFT)
 pdf_image(output_pdf, 2, 2, 0)
+# overlay_image_on_pdf(output_pdf, "./res/marker-415_635.png")
+
