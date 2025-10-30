@@ -8,6 +8,11 @@ from reportlab.pdfgen import canvas
 from libs.file_collector_with_ignore.file_collector_with_ignore import collect_files
 from pnpconfig_parser import PnpConfigParser
 
+from mypass import collect_pnpcfgs, get_effective_config
+
+
+
+
 
 import fitz          # PyMuPDF
 from PIL import Image
@@ -22,6 +27,18 @@ imgs_path = ""
 
 if imgs_path == "":
     imgs_path = input("Enter the path to the images folder: ").strip().strip('"')
+
+
+base_dir = imgs_path
+print(f"\n📁 扫描路径: {base_dir}\n")
+
+# 第一步：收集所有目标文件
+files = collect_files(base_dir)
+print(f"共找到 {len(files)} 个文件")
+
+# 第二步：收集并解析所有 .pnpcfg
+cfg_map = collect_pnpcfgs(base_dir)
+print(f"共解析 {len(cfg_map)} 个配置目录\n")
 
 # 📂 获取配置路径
 config = PnpConfigParser(imgs_path)
@@ -125,12 +142,18 @@ def create_pdf(input_dir, output_pdf, right_to_left=False):
         # Create a white background to paste the image on
         img_with_bleed = Image.new("RGBA", (CARD_WIDTH, CARD_HEIGHT), (255, 255, 255, 255))
 
+        cfg = get_effective_config(image_path, cfg_map, base_dir)
+
         # Resize the image, maintaining the transparency (alpha channel)
-        img_resized = img.resize((CARD_WIDTH - 2 * mm_to_px(BLEED_H_MM),
-                                  CARD_HEIGHT - 2 * mm_to_px(BLEED_V_MM)), Image.LANCZOS)
+        w,h = mm_to_px(float(re.match(r'CONST\((.+)\)', cfg["CARD_WIDTH_MM"]).group(1))), \
+                                  mm_to_px(float(re.match(r'CONST\((.+)\)', cfg["CARD_HEIGHT_MM"]).group(1)))
+
+        img_resized = img.resize((w,h), Image.LANCZOS)
+
 
         # Paste the resized image onto the white background
-        img_with_bleed.paste(img_resized, (mm_to_px(BLEED_H_MM), mm_to_px(BLEED_V_MM)), img_resized)
+        img_with_bleed.paste(img_resized, ((CARD_WIDTH - w)//2,(CARD_HEIGHT - h)//2), img_resized)
+
 
         # Save resized image with bleed
         temp_filename = f"temp_image_{uuid.uuid4().hex}.png"
