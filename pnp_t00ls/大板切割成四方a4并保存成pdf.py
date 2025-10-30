@@ -15,6 +15,9 @@ MARGIN_MM = 7.5  # 每边留白 7.5mm
 PRINTABLE_WIDTH_MM  = A4_WIDTH_MM - 2 * MARGIN_MM
 PRINTABLE_HEIGHT_MM = A4_HEIGHT_MM - 2 * MARGIN_MM
 
+ROTATE = True
+
+
 # ------------------ 主程序 ------------------
 def mm_to_px(mm_val):
     return int(mm_val / 25.4 * DPI)
@@ -55,6 +58,10 @@ def cut_and_export(image_path):
     # 打开图像
     image = Image.open(image_path)
     img_name = os.path.splitext(os.path.basename(image_path))[0]
+
+    if ROTATE:
+        image = image.rotate(90, expand=True)
+
     output_dir = os.path.dirname(image_path)
     os.makedirs(output_dir, exist_ok=True)
 
@@ -70,7 +77,8 @@ def cut_and_export(image_path):
     new_height_px = mm_to_px(target_height_mm)
     new_width_px = mm_to_px(target_width_mm / cut)
 
-    image_list = cut_image(image, cut, 1)  # 列 行
+    image_list = cut_image(image, 2, 2)  # 列 行
+
 
     save_images_to_a4_pdf(image_list, new_width_px, new_height_px, output_dir, output_pdf_name="output.pdf")
 
