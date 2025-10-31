@@ -1,6 +1,3 @@
-
-
-
 # 🧩 默认配置
 defaults = {
     "MAX_CARD_WIDTH_MM": 44,
@@ -15,5 +12,10 @@ defaults = {
     "RIGHT_TO_LEFT": False,
 }
 
-# Constants for sizing in mm, converted to pixels (A4 at 300ppi)
-A4_WIDTH, A4_HEIGHT = (2480, 3508)  # A4 size at 300ppi
+DPI = 300
+
+A4_WIDTH_MM = 210
+A4_HEIGHT_MM = 297
+
+A4_WIDTH = int(A4_WIDTH_MM / 25.4 * DPI)
+A4_HEIGHT = int(A4_HEIGHT_MM / 25.4 * DPI)

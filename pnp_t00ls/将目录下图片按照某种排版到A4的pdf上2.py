@@ -8,6 +8,7 @@ import io
 from pathlib import Path
 
 from config import *
+from utils import mm_to_px
 
 from reportlab.pdfgen import canvas
 
@@ -15,9 +16,6 @@ from libs.file_collector_with_ignore.file_collector_with_ignore import collect_f
 from pnpconfig_parser import PnpConfigParser
 
 from mypass import collect_pnpcfgs, get_effective_config
-
-
-
 
 
 PAGE_WIDTH, PAGE_HEIGHT = A4_WIDTH, A4_HEIGHT
@@ -79,11 +77,8 @@ if MAX_CARD_HEIGHT_MM < CARD_HEIGHT_MM:
 
 BLEED_H_MM = (MAX_CARD_WIDTH_MM - CARD_WIDTH_MM) / 2.0
 BLEED_V_MM = (MAX_CARD_HEIGHT_MM - CARD_HEIGHT_MM) / 2.0
-DPI = 300
 
-# Convert dimensions from mm to pixels
-def mm_to_px(mm, dpi=DPI):
-    return int((mm / 25.4) * dpi)
+
 
 CARD_WIDTH = mm_to_px(CARD_WIDTH_MM + 2 * BLEED_H_MM)  # Width with bleed
 CARD_HEIGHT = mm_to_px(CARD_HEIGHT_MM + 2 * BLEED_V_MM)  # Height with bleed
@@ -101,8 +96,9 @@ MARGIN_X = (PAGE_WIDTH - MAX_COLS * CARD_WIDTH) // 2
 MARGIN_Y = (PAGE_HEIGHT - MAX_ROWS * CARD_HEIGHT) // 2
 
 # 输入
-def create_pdf(img_pth_list, output_pdf, right_to_left=False):
-    c = canvas.Canvas(output_pdf, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
+
+def layout_images_to_pdf(image_paths, output_pdf_path, right_to_left=False):
+    c = canvas.Canvas(output_pdf_path, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
     x, y = MARGIN_X, PAGE_HEIGHT - MARGIN_Y - CARD_HEIGHT  # Start at top-left within margins
 
     col_count = 0
@@ -111,7 +107,7 @@ def create_pdf(img_pth_list, output_pdf, right_to_left=False):
     if right_to_left:
         x = PAGE_WIDTH - MARGIN_X - CARD_WIDTH  # Start at top-right within margins
 
-    for path in img_pth_list:
+    for path in image_paths:
         print(f"Processing image: {path}")
         img = Image.open(path)
 
@@ -161,7 +157,7 @@ def create_pdf(img_pth_list, output_pdf, right_to_left=False):
             y = PAGE_HEIGHT - MARGIN_Y - CARD_HEIGHT
 
     c.save()
-    print(f"PDF saved as {output_pdf}")
+    print(f"PDF saved as {output_pdf_path}")
 
 def add_page_numbers(input_pdf):
     doc = fitz.open(input_pdf)
@@ -193,17 +189,16 @@ def add_page_numbers(input_pdf):
     doc.saveIncr()
     doc.close()
 
-def pdf_image(pdfPath, zoom_x, zoom_y):
-    a4_target_size = (2480, 3508)  # Resize to A4 size
+def pdf_image(pdfPath):
     pdf = fitz.open(pdfPath)
-    mark = Image.open("./res/mark-line.png").resize(a4_target_size, Image.LANCZOS)
+    mark = Image.open("./res/mark-line.png").resize((PAGE_WIDTH, PAGE_HEIGHT), Image.LANCZOS)
     out_imgs = []
 
     for pg in range(pdf.page_count):
         page = pdf[pg]
-        pix = page.get_pixmap(matrix=fitz.Matrix(zoom_x, zoom_y), alpha=False)
+        pix = page.get_pixmap(matrix=fitz.Matrix(DPI / 72., DPI / 72.), alpha=False)
         img_data = pix.tobytes()
-        img = Image.open(io.BytesIO(img_data)).resize(a4_target_size, Image.LANCZOS)
+        img = Image.open(io.BytesIO(img_data)).resize((PAGE_WIDTH, PAGE_HEIGHT), Image.LANCZOS)
         img.paste(mark, (0, 0), mark)
         out_imgs.append(img)
 
@@ -217,7 +212,6 @@ def pdf_image(pdfPath, zoom_x, zoom_y):
 
     add_page_numbers(pdfPath[0: -4] + "-marked-line.pdf")
     print(f"Marked PDF saved as {pdfPath[0: -4]}-marked-line.pdf")
-
 
 def overlay_image_on_pdf(pdf_path: str, overlay_image_path: str):
     """
@@ -256,7 +250,6 @@ def overlay_image_on_pdf(pdf_path: str, overlay_image_path: str):
         add_page_numbers(output_path)
         print(f"PDF 已保存：{output_path}")
 
-
 def main():
 
     filtered_files = collect_files(input_dir)
@@ -279,8 +272,8 @@ def main():
 
 
     output_pdf = os.path.join(input_dir, "output.pdf")
-    create_pdf(filtered_files, output_pdf, RIGHT_TO_LEFT)
-    pdf_image(output_pdf, 2, 2)
+    layout_images_to_pdf(filtered_files, output_pdf, RIGHT_TO_LEFT)
+    pdf_image(output_pdf)
 
 
 
