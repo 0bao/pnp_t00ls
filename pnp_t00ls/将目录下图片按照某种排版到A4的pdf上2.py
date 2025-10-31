@@ -17,87 +17,95 @@ from pnpconfig_parser import PnpConfigParser
 
 from mypass import collect_pnpcfgs, get_effective_config
 
-
-PAGE_WIDTH, PAGE_HEIGHT = A4_WIDTH, A4_HEIGHT
-
-input_dir = ""
-
-if input_dir == "":
-    input_dir = input("Enter the path to the images folder: ").strip().strip('"')
-
-
-print(f"\n📁 扫描路径: {input_dir}\n")
-
-# 第一步：收集所有目标文件
-files = collect_files(input_dir)
-print(f"共找到 {len(files)} 个文件")
-
-# 第二步：收集并解析所有 .pnpcfg
-cfg_map = collect_pnpcfgs(input_dir)
-print(f"共解析 {len(cfg_map)} 个配置目录\n")
-
-# 📂 获取配置路径
-config = PnpConfigParser(input_dir)
-config.parse()
-
-# 🎯 解析最终配置
-MAX_CARD_WIDTH_MM = float(config.get("MAX_CARD_WIDTH_MM", defaults["MAX_CARD_WIDTH_MM"]))
-MAX_CARD_HEIGHT_MM = float(config.get("MAX_CARD_HEIGHT_MM", defaults["MAX_CARD_HEIGHT_MM"]))
-CARD_WIDTH_MM = float(config.get("CARD_WIDTH_MM", defaults["CARD_WIDTH_MM"]))
-CARD_HEIGHT_MM = float(config.get("CARD_HEIGHT_MM", defaults["CARD_HEIGHT_MM"]))
-REPEAT = config.get("REPEAT", defaults["REPEAT"])
-REPEAT_COUNT = config.get("REPEAT_COUNT", defaults["REPEAT_COUNT"])
-WRITE_TEXT = config.get("WRITE_TEXT", defaults["WRITE_TEXT"])
-ROWS = config.get("ROWS", defaults["ROWS"])
-COLS = config.get("COLS", defaults["COLS"])
-RIGHT_TO_LEFT = config.get("RIGHT_TO_LEFT", defaults["RIGHT_TO_LEFT"])
-
-# ａ４纸两边的白边
-PAGE_MARGIN_WIDTH_MM = 25 / 2.0
-PAGE_MARGIN_HEIGHT_MM = 30 / 2.0 # 实际大小是 35 为了做卡片妥协了
-
-if CARD_WIDTH_MM == -1 or CARD_HEIGHT_MM == -1:
-    CARD_WIDTH_MM = MAX_CARD_WIDTH_MM
-    CARD_HEIGHT_MM = MAX_CARD_HEIGHT_MM
-
-# Adjust CARD_WIDTH_MM and CARD_HEIGHT_MM to fit within MAX_CARD dimensions if necessary
-if MAX_CARD_WIDTH_MM < CARD_WIDTH_MM:
-    print(
-        f"MAX_CARD_WIDTH_MM ({MAX_CARD_WIDTH_MM}) is smaller than CARD_WIDTH_MM ({CARD_WIDTH_MM}). "
-        f"Adjusting CARD_WIDTH_MM to {MAX_CARD_WIDTH_MM}."
-    )
-    CARD_WIDTH_MM = MAX_CARD_WIDTH_MM
-
-if MAX_CARD_HEIGHT_MM < CARD_HEIGHT_MM:
-    print(
-        f"MAX_CARD_HEIGHT_MM ({MAX_CARD_HEIGHT_MM}) is smaller than CARD_HEIGHT_MM ({CARD_HEIGHT_MM}). "
-        f"Adjusting CARD_HEIGHT_MM to {MAX_CARD_HEIGHT_MM}."
-    )
-    CARD_HEIGHT_MM = MAX_CARD_HEIGHT_MM
-
-BLEED_H_MM = (MAX_CARD_WIDTH_MM - CARD_WIDTH_MM) / 2.0
-BLEED_V_MM = (MAX_CARD_HEIGHT_MM - CARD_HEIGHT_MM) / 2.0
+def set_global_config(input_dir):
+    global DPI
+    global A4_WIDTH_MM
+    global A4_HEIGHT_MM
+    global PAGE_WIDTH
+    global PAGE_HEIGHT
+    global MAX_CARD_WIDTH_MM
+    global MAX_CARD_HEIGHT_MM
+    global CARD_WIDTH_MM
+    global CARD_HEIGHT_MM
+    global REPEAT
+    global REPEAT_COUNT
+    global WRITE_TEXT
+    global ROWS
+    global COLS
+    global RIGHT_TO_LEFT
+    global PAGE_MARGIN_WIDTH_MM
+    global PAGE_MARGIN_HEIGHT_MM
+    global BLEED_H_MM
+    global BLEED_V_MM
+    global CARD_WIDTH
+    global CARD_HEIGHT
+    global MAX_COLS
+    global MAX_ROWS
+    global MARGIN_X
+    global MARGIN_Y
 
 
 
-CARD_WIDTH = mm_to_px(CARD_WIDTH_MM + 2 * BLEED_H_MM)  # Width with bleed
-CARD_HEIGHT = mm_to_px(CARD_HEIGHT_MM + 2 * BLEED_V_MM)  # Height with bleed
+    print(f"\n📁 扫描路径: {input_dir}\n")
 
-MAX_COLS = COLS
-MAX_ROWS = ROWS
-if ROWS == -1 or COLS == -1:
-    # Calculate rows and columns dynamically based on A4 page size
-    MAX_COLS = (PAGE_WIDTH - mm_to_px(PAGE_MARGIN_WIDTH_MM * 2.0)) // CARD_WIDTH
-    i = mm_to_px(PAGE_MARGIN_HEIGHT_MM * 2.0)
-    MAX_ROWS = (PAGE_HEIGHT - mm_to_px(PAGE_MARGIN_HEIGHT_MM * 2.0)) // CARD_HEIGHT
+    # 📂 获取配置路径
+    config = PnpConfigParser(input_dir)
+    config.parse()
 
-# Calculate margin for centering
-MARGIN_X = (PAGE_WIDTH - MAX_COLS * CARD_WIDTH) // 2
-MARGIN_Y = (PAGE_HEIGHT - MAX_ROWS * CARD_HEIGHT) // 2
+    # 🎯 解析最终配置
+    MAX_CARD_WIDTH_MM = float(config.get("MAX_CARD_WIDTH_MM", defaults["MAX_CARD_WIDTH_MM"]))
+    MAX_CARD_HEIGHT_MM = float(config.get("MAX_CARD_HEIGHT_MM", defaults["MAX_CARD_HEIGHT_MM"]))
+    CARD_WIDTH_MM = float(config.get("CARD_WIDTH_MM", defaults["CARD_WIDTH_MM"]))
+    CARD_HEIGHT_MM = float(config.get("CARD_HEIGHT_MM", defaults["CARD_HEIGHT_MM"]))
+    REPEAT = config.get("REPEAT", defaults["REPEAT"])
+    REPEAT_COUNT = config.get("REPEAT_COUNT", defaults["REPEAT_COUNT"])
+    WRITE_TEXT = config.get("WRITE_TEXT", defaults["WRITE_TEXT"])
+    ROWS = config.get("ROWS", defaults["ROWS"])
+    COLS = config.get("COLS", defaults["COLS"])
+    RIGHT_TO_LEFT = config.get("RIGHT_TO_LEFT", defaults["RIGHT_TO_LEFT"])
 
-# 输入
+    # ａ４纸两边的白边
+    PAGE_MARGIN_WIDTH_MM = 25 / 2.0
+    PAGE_MARGIN_HEIGHT_MM = 30 / 2.0  # 实际大小是 35 为了做卡片妥协了
 
-def layout_images_to_pdf(image_paths, output_pdf_path, right_to_left=False):
+    if CARD_WIDTH_MM == -1 or CARD_HEIGHT_MM == -1:
+        CARD_WIDTH_MM = MAX_CARD_WIDTH_MM
+        CARD_HEIGHT_MM = MAX_CARD_HEIGHT_MM
+
+    # Adjust CARD_WIDTH_MM and CARD_HEIGHT_MM to fit within MAX_CARD dimensions if necessary
+    if MAX_CARD_WIDTH_MM < CARD_WIDTH_MM:
+        print(
+            f"MAX_CARD_WIDTH_MM ({MAX_CARD_WIDTH_MM}) is smaller than CARD_WIDTH_MM ({CARD_WIDTH_MM}). "
+            f"Adjusting CARD_WIDTH_MM to {MAX_CARD_WIDTH_MM}."
+        )
+        CARD_WIDTH_MM = MAX_CARD_WIDTH_MM
+
+    if MAX_CARD_HEIGHT_MM < CARD_HEIGHT_MM:
+        print(
+            f"MAX_CARD_HEIGHT_MM ({MAX_CARD_HEIGHT_MM}) is smaller than CARD_HEIGHT_MM ({CARD_HEIGHT_MM}). "
+            f"Adjusting CARD_HEIGHT_MM to {MAX_CARD_HEIGHT_MM}."
+        )
+        CARD_HEIGHT_MM = MAX_CARD_HEIGHT_MM
+
+    BLEED_H_MM = (MAX_CARD_WIDTH_MM - CARD_WIDTH_MM) / 2.0
+    BLEED_V_MM = (MAX_CARD_HEIGHT_MM - CARD_HEIGHT_MM) / 2.0
+
+    CARD_WIDTH = mm_to_px(CARD_WIDTH_MM + 2 * BLEED_H_MM)  # Width with bleed
+    CARD_HEIGHT = mm_to_px(CARD_HEIGHT_MM + 2 * BLEED_V_MM)  # Height with bleed
+
+    MAX_COLS = COLS
+    MAX_ROWS = ROWS
+    if ROWS == -1 or COLS == -1:
+        # Calculate rows and columns dynamically based on A4 page size
+        MAX_COLS = (PAGE_WIDTH - mm_to_px(PAGE_MARGIN_WIDTH_MM * 2.0)) // CARD_WIDTH
+        i = mm_to_px(PAGE_MARGIN_HEIGHT_MM * 2.0)
+        MAX_ROWS = (PAGE_HEIGHT - mm_to_px(PAGE_MARGIN_HEIGHT_MM * 2.0)) // CARD_HEIGHT
+
+    # Calculate margin for centering
+    MARGIN_X = (PAGE_WIDTH - MAX_COLS * CARD_WIDTH) // 2
+    MARGIN_Y = (PAGE_HEIGHT - MAX_ROWS * CARD_HEIGHT) // 2
+
+def layout_images_to_pdf(image_paths, output_pdf_path, input_dir, cfg_map, right_to_left=False ):
     c = canvas.Canvas(output_pdf_path, pagesize=(PAGE_WIDTH, PAGE_HEIGHT))
     x, y = MARGIN_X, PAGE_HEIGHT - MARGIN_Y - CARD_HEIGHT  # Start at top-left within margins
 
@@ -251,6 +259,15 @@ def overlay_image_on_pdf(pdf_path: str, overlay_image_path: str):
         print(f"PDF 已保存：{output_path}")
 
 def main():
+    input_dir = ""
+
+    if input_dir == "":
+        input_dir = input("Enter the path to the images folder: ").strip().strip('"')
+
+    set_global_config(input_dir)
+
+    cfg_map = collect_pnpcfgs(input_dir)
+    print(f"共解析 {len(cfg_map)} 个配置目录\n")
 
     filtered_files = collect_files(input_dir)
 
@@ -272,7 +289,7 @@ def main():
 
 
     output_pdf = os.path.join(input_dir, "output.pdf")
-    layout_images_to_pdf(filtered_files, output_pdf, RIGHT_TO_LEFT)
+    layout_images_to_pdf(filtered_files, output_pdf, input_dir, cfg_map, RIGHT_TO_LEFT)
     pdf_image(output_pdf)
 
 
