@@ -44,7 +44,8 @@ def set_global_config(input_dir):
     global MARGIN_X
     global MARGIN_Y
 
-
+    PAGE_WIDTH = mm_to_px(A4_WIDTH_MM)
+    PAGE_HEIGHT = mm_to_px(A4_HEIGHT_MM)
 
     print(f"\n📁 扫描路径: {input_dir}\n")
 

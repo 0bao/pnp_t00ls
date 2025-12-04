@@ -52,7 +52,7 @@ if __name__ == '__main__':
     w = 0
     image = Image.open(img_path)
     #image = crop(image, (0, 0, 1450, 2060)) # 去除边框
-    image_list = cut_image(image, 6, 4)  # 列 行
+    image_list = cut_image(image, 10, 7)  # 列 行
     for image in image_list:
         image.save(img_path[0:-4] + "/" + '%03d' % w + '.png', quality = 100)
         w += 1

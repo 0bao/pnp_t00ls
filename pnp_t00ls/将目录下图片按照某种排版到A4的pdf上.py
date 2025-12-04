@@ -11,17 +11,15 @@ from pnpconfig_parser import PnpConfigParser
 from mypass import collect_pnpcfgs, get_effective_config
 
 
-
-
-
 import fitz          # PyMuPDF
 from PIL import Image
 import io
 from pathlib import Path
 
 from config import *
+from utils import *
 
-PAGE_WIDTH, PAGE_HEIGHT = A4_WIDTH, A4_HEIGHT
+PAGE_WIDTH, PAGE_HEIGHT = mm_to_px(A4_WIDTH_MM), mm_to_px(A4_HEIGHT_MM)
 
 imgs_path = ""
 
